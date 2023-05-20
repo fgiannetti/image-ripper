@@ -5,16 +5,11 @@ import (
 	"github.com/fgiannetti/image-ripper/pkg/tar"
 )
 
-const tmp = "/tmp/ripper"
-const dest = "/tmp/dest"
+const tmp = "/tmp/image-ripper"
 const filename = "/Users/fernando.giannetti/Downloads/testTar/test.tar"
 
 func main() {
-	defer os.Remove(tmp)
-
-	if err := os.Mkdir(tmp, 0777); err != nil {
-		panic(err)
-	}
+	defer clean()
 
 	if err := os.Mkdir(tmp, 0777); err != nil {
 		panic(err)
@@ -32,4 +27,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func clean(){
+	os.Remove(tmp)
 }
