@@ -7,6 +7,8 @@ The tool recursivelly iterates through the directories of the root tar file look
 The result is a directory that contains all files and directories contained in the exported image.
 The image should be a tar file
 
+_NOTE:_ By now, all symlynks inside the original tar will be discarded
+
 ## Usage
 
 ### Build
@@ -21,4 +23,5 @@ make build
 ./image-ripper <imageTarFile> <destinationDirectory> 
 ```
 
-
+----
+Contributions are welcome!
