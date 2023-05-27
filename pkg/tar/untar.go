@@ -1,3 +1,6 @@
+/*
+* Based on https://cs.opensource.google/go/x/build/+/26b6615d:internal/untar/untar.go
+ */
 package tar
 
 import (
@@ -6,16 +9,24 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"log"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 )
 
-func Untar(r io.Reader, dir string) (err error) {
+func Untar(tarFile string, outDir string) (err error) {
 	nFiles := 0
 	madeDir := map[string]bool{}
-	tr := tar.NewReader(r)
+
+	file, err := os.Open(tarFile)
+
+	if err != nil {
+		return err
+	}
+
+	tr := tar.NewReader(file)
 
 	for {
 		f, err := tr.Next()
@@ -29,16 +40,12 @@ func Untar(r io.Reader, dir string) (err error) {
 			return fmt.Errorf("tar contained invalid name error %q", f.Name)
 		}
 		rel := filepath.FromSlash(f.Name)
-		abs := filepath.Join(dir, rel)
+		abs := filepath.Join(outDir, rel)
 
 		fi := f.FileInfo()
 		mode := fi.Mode()
 		switch {
 		case mode.IsRegular():
-			// Make the directory. This is redundant because it should
-			// already be made by a directory entry in the tar
-			// beforehand. Thus, don't check for errors; the next
-			// write will fail with the same error.
 			dir := filepath.Dir(abs)
 			if !madeDir[dir] {
 				if err := os.MkdirAll(filepath.Dir(abs), 0755); err != nil {
@@ -47,12 +54,6 @@ func Untar(r io.Reader, dir string) (err error) {
 				madeDir[dir] = true
 			}
 			if runtime.GOOS == "darwin" && mode&0111 != 0 {
-				// The darwin kernel caches binary signatures
-				// and SIGKILLs binaries with mismatched
-				// signatures. Overwriting a binary with
-				// O_TRUNC does not clear the cache, rendering
-				// the new copy unusable. Removing the original
-				// file first does clear the cache. See #54132.
 				err := os.Remove(abs)
 				if err != nil && !errors.Is(err, fs.ErrNotExist) {
 					return err
@@ -79,7 +80,9 @@ func Untar(r io.Reader, dir string) (err error) {
 			}
 			madeDir[abs] = true
 		default:
-			return fmt.Errorf("tar file entry %s contained unsupported file type %v", f.Name, mode)
+			//unsupported modes are discarded
+			log.Printf("tar file entry %s contained unsupported file type %v will be discarded", f.Name, mode)
+			nFiles++
 		}
 	}
 	return nil

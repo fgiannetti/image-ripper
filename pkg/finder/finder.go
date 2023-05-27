@@ -27,9 +27,8 @@ func FindLayers(rootDir string) ([]string, error) {
 	layerPaths := make([]string, 0)
 
 	if err = filepath.WalkDir(rootDir, func(path string, d fs.DirEntry, err error) error {
-		fmt.Println(fmt.Sprintf("processing %s", path))
-		if d.Name() == layerFileName{
-			layerPaths=append(layerPaths, path)
+		if d.Name() == layerFileName {
+			layerPaths = append(layerPaths, path)
 			return filepath.SkipDir
 		}
 		return nil

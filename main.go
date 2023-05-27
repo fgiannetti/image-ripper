@@ -4,52 +4,30 @@ import (
 	"log"
 	"os"
 
-	"github.com/fgiannetti/image-ripper/pkg/finder"
-	"github.com/fgiannetti/image-ripper/pkg/tar"
+	"github.com/fgiannetti/image-ripper/pkg/ripper"
 )
 
-const tmp = "/tmp/image-ripper"
-const filename = "/home/fer/Downloads/testTar/root.tar"
-const dest = "/home/fer/Downloads/testTar/dest"
+var returnCode = 0
 
 func main() {
-	defer clean()
+	ripper := ripper.New()
+	defer ripper.Clean()
 
-	//TODO: if the destination directory does not exists, create it. If it exists and is not empty, panic
-
-	if err := os.Mkdir(tmp, 0777); os.IsExist(err) {
-		log.Println("temp directory already exists. Deleting it...")
-		if err = os.RemoveAll(tmp); err != nil {
-			panic(err)
-		}
+	if len(os.Args) < 3 {
+		log.Println("usage: image-ripper <imageTarFile> <destinationDirectory>")
+		returnCode = 1
+		return
 	}
 
-	file, err := os.Open(filename)
+	tarFile := os.Args[1]
+	destDir := os.Args[2]
 
-	if err != nil {
-		panic(err)
+	if err := ripper.Unpack(tarFile, destDir); err != nil {
+		returnCode = 1
+		log.Printf("an error ocurred extracting image filesystem: %s", err.Error())
 	}
-
-	log.Printf("expanding the image tar file in the temporary directory %s", tmp)
-	err = tar.Untar(file, tmp)
-
-	if err != nil {
-		panic(err)
-	}
-
-	log.Println("tar file expanded successfully")
-
-	log.Println("finding layers...")
-	layers, err := finder.FindLayers(tmp)
-	if err != nil {
-		panic(err)
-	}
-
-	log.Println(layers)
 }
 
-func clean() {
-	if err := os.RemoveAll(tmp); err == nil {
-		log.Println("temporary directory successfully removed")
-	}
+func exit() {
+	os.Exit(returnCode)
 }

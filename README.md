@@ -1,9 +1,24 @@
-# image-ripper
-Exports a Docker image internal FS to a directory
+# Image Ripper
+
+Exports a Docker image internal FileSystem to a local directory.
+
+The tool recursivelly iterates through the directories of the root tar file looking for _layer.tar_ files and unpacking them inside the destination directory.
+
+The result is a directory that contains all files and directories contained in the exported image.
+The image should be a tar file
+
+## Usage
+
+### Build
+
+```
+make build
+```
+
+### Execute
+
+```
+./image-ripper <imageTarFile> <destinationDirectory> 
+```
 
 
-Ver también: https://ispycode.com/Blog/golang/2016-10/Untar-a-tarball
-
-TODO:
- - Checkear que pasa con los directorios internos del tar.
-    deberían crearse en el destino? (tanto en el link como en el archivo untar.go, se crean en el mismo dir del tar)
